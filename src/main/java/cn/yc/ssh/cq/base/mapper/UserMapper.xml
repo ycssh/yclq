@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="cn.yc.ssh.cq.base.mapper.UserMapper">
+	<resultMap id="rm" type="cn.yc.ssh.cq.base.entity.User">
+		<result property="id" jdbcType="INTEGER" column="ID"/>
+		<result property="organizationId" jdbcType="INTEGER" column="organization_Id"/>
+		<result property="username" jdbcType="VARCHAR" column="USERNAME"/>
+		<result property="password" jdbcType="VARCHAR" column="PASSWORD"/>
+		<result property="email" jdbcType="VARCHAR" column="email"/>
+		<result property="phone" jdbcType="VARCHAR" column="phone"/>
+		<result property="status" jdbcType="VARCHAR" column="status"/>
+		<result property="birthDate" jdbcType="TIMESTAMP" column="birthDate"/>
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID,
+		organization_Id,
+		USERNAME,
+		PASSWORD,
+		email,
+		phone,
+		status,
+		birthDate
+	</sql>
+	<select id="load" parameterType="java.lang.Long" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_user 
+		WHERE 
+			ID = #{id} 
+	</select>
+	
+	<select id="findByUsername" parameterType="java.lang.String" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />,salt
+		FROM sys_user 
+		WHERE 
+			USERNAME = #{username} 
+	</select>
+	<select id="findAllIds" resultType="java.lang.Integer">
+		SELECT ID FROM sys_user
+	</select>
+
+	<delete id="delete" parameterType="java.lang.Integer">
+		DELETE FROM sys_user WHERE
+		ID = #{id} 
+	</delete>
+	
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO sys_user (
+			organization_Id,
+			USERNAME,
+			PASSWORD,
+			EMAIL,
+			PHONE,
+			salt,
+			STATUS,
+			BIRTHDATE
+		) VALUES (
+			#{organizationId},
+			#{username},
+			#{password},
+			#{email},
+			#{phone},
+			#{salt},
+			#{status},
+			#{birthDate}
+		)
+	</insert>
+	
+	<select id="countAll" resultType="java.lang.Integer">
+		SELECT count(ID) FROM sys_user	
+	</select>
+	
+	<select id="findAll" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_user
+	</select>
+	
+	<update id="updateSelective" parameterType="cn.yc.ssh.cq.base.entity.User">
+		UPDATE sys_user 
+			<set>
+				<if test="username!=null">
+				USERNAME = #{username},
+				</if>
+				<if test="organizationId!=null">
+				organization_Id = #{organization_Id},
+				</if>
+				<if test="password!=null">
+				PASSWORD = #{password},
+				</if>
+				<if test="email!=null">
+				EMAIL = #{email},
+				</if>
+				<if test="phone!=null">
+				PHONE = #{phone},
+				</if>
+				<if test="status!=null">
+				STATUS = #{status},
+				</if>
+				<if test="birthDate!=null">
+				BIRTH_DATE = #{birthDate},
+				</if>
+			</set>
+		WHERE 
+			ID = #{id}
+	</update>
+	
+	<update id="update" parameterType="cn.yc.ssh.cq.base.mapper.UserMapper">
+		UPDATE sys_user SET
+			USERNAME = #{username},
+			PASSWORD = #{password},
+			EMAIL = #{email},
+			PHONE = #{phone},
+			STATUS = #{status},
+			BIRTH_DATE = #{birthDate}
+		WHERE 
+			ID = #{id} 
+	</update>
+	
+	
+	<select id="isUniqueUsername" parameterType="map" resultType="java.lang.Integer">
+		select count(0) as c
+		from sys_user where ID != #{id} and USERNAME = #{username} and STATUS!='DELETED'
+	</select>
+	
+	<select id="findPageBreakByCondition" resultMap="rm" parameterType="map">
+		SELECT 
+	        <include refid="Base_Column_List" />
+		from sys_user 
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			username != 'admin'
+			<choose>
+				<when test="status != null">
+					 AND STATUS=#{status}  
+				</when>
+				<otherwise>
+					 AND STATUS!='DELETED'
+				</otherwise>
+			</choose>
+			<if test="keywords != null">
+				AND (
+					USERNAME LIKE "%"#{keywords}"%"
+					or EMAIL LIKE "%"#{keywords}"%"
+					or PHONE LIKE "%"#{keywords}"%"
+				)
+      		</if>
+      	</trim>
+
+		<choose>
+			<when test="orderField !=null and orderField !=''">
+				 ORDER BY ${orderField} <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+      	 
+	</select>
+	<select id="findNumberByCondition" resultType="java.lang.Integer" parameterType="map">
+		select count(0) as c from sys_user
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			username != 'admin'
+			<choose>
+				<when test="status != null">
+					 AND STATUS=#{status}  
+				</when>
+				<otherwise>
+					 AND STATUS!='DELETED'
+				</otherwise>
+			</choose>
+			<if test="keywords != null">
+				AND (
+					USERNAME LIKE "%"#{keywords}"%"
+					or EMAIL LIKE "%"#{keywords}"%"
+					or PHONE LIKE "%"#{keywords}"%"
+				)
+      		</if>
+      	</trim>
+	</select>
+	
+	
+	
+	<!-- 按Id删除sys_role_resource -->
+	<delete id="deleteUserRole" parameterType="java.lang.Long">
+		DELETE FROM sys_user_role WHERE user_Id = #{userId} 
+	</delete>
+	
+	<insert id="insertUserRole" parameterType="java.util.List">
+		insert into sys_user_role (user_Id,role_Id) values
+		<foreach collection="list" item="item" index="index" separator=",">
+			( #{item.userId}, #{item.roleId})
+		</foreach>
+	</insert>
+</mapper>
+

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="cn.yc.ssh.cq.base.mapper.RoleMapper">
+	<resultMap id="rm" type="cn.yc.ssh.cq.base.entity.Role">
+		<result property="id" jdbcType="INTEGER" column="ID"/>
+		<result property="role" jdbcType="VARCHAR" column="role"/>
+		<result property="description" jdbcType="VARCHAR" column="description"/>
+		<result property="available" jdbcType="INTEGER" column="available"/>
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID,
+		role,
+		description,
+		available
+	</sql>
+	<select id="load" parameterType="java.lang.Long" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_role 
+		WHERE 
+			ID = #{id} 
+	</select>
+	
+	<select id="findByUser" parameterType="java.lang.Long" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_role a where exists(select 1 from sys_user_role where user_id=#{userId} and role_id=a.id)
+	</select>
+	
+	<select id="findAllIds" resultType="java.lang.Long">
+		SELECT ID FROM sys_role
+	</select>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		DELETE FROM sys_role WHERE
+		ID = #{id} 
+	</delete>
+	
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO sys_role (
+			role,
+			description,
+			available
+		) VALUES (
+			#{role},
+			#{description},
+			#{available})
+	</insert>
+	
+	<select id="countAll" resultType="java.lang.Long">
+		SELECT count(ID) FROM sys_role	
+	</select>
+	
+	<select id="findAll" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_role
+	</select>
+	
+	<update id="updateSelective" parameterType="cn.yc.ssh.cq.base.entity.User">
+		UPDATE sys_role 
+			<set>
+				<if test="role!=null">
+				role = #{role},
+				</if>
+				<if test="description!=null">
+				description = #{description},
+				</if>
+				<if test="available!=null">
+				available = #{available},
+				</if>
+			</set>
+		WHERE 
+			ID = #{id}
+	</update>
+	
+	<update id="update" parameterType="cn.yc.ssh.cq.base.mapper.RoleMapper">
+		UPDATE sys_role SET
+			role = #{role},
+			description = #{description},
+			available = #{available}
+		WHERE 
+			ID = #{id} 
+	</update>
+	
+	<select id="isUniqueRole" parameterType="map" resultType="java.lang.Long">
+		select count(0) as c from sys_role where ID != #{id} and role = #{role}
+	</select>
+	
+	<select id="findPageBreakByCondition" resultMap="rm" parameterType="map">
+		SELECT 
+	        <include refid="Base_Column_List" />
+		from sys_role 
+		<choose>
+			<when test="orderField !=null and orderField !=''">
+				 ORDER BY ${orderField} <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	<select id="findNumberByCondition" resultType="java.lang.Long" parameterType="map">
+		select count(0) as c from sys_role
+	</select>
+	
+	<update id="deleteRoleRes" parameterType="java.lang.Long">
+		DELETE FROM sys_role_res WHERE role_id = #{roleId} 
+	</update>
+	
+	<insert id="insertRoleRes" parameterType="java.util.List">
+		INSERT INTO sys_role_res (role_Id, res_Id) values
+		<foreach collection="list" item="item" index="index" separator=",">
+			( #{item.roleId}, #{item.resId})
+		</foreach>
+	</insert>
+</mapper>
+

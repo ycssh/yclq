@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="cn.yc.ssh.cq.base.mapper.ResourcesMapper">
+	<resultMap id="rm" type="cn.yc.ssh.cq.base.entity.Resources">
+		<result property="id" jdbcType="INTEGER" column="ID"/>
+		<result property="name" jdbcType="VARCHAR" column="name"/>
+		<result property="type" jdbcType="VARCHAR" column="type"/>
+		<result property="url" jdbcType="VARCHAR" column="url"/>
+		<result property="parentId" jdbcType="INTEGER" column="parent_id"/>
+		<result property="parentIds" jdbcType="VARCHAR" column="parent_ids"/>
+		<result property="permission" jdbcType="VARCHAR" column="permission"/>
+		<result property="available" jdbcType="INTEGER" column="available"/>
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID,name,type,url,parent_id,parent_ids,permission,available
+	</sql>
+	<select id="load" parameterType="java.lang.Long" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_resource 
+		WHERE 
+			ID = #{id} 
+	</select>
+	
+	<select id="findByRole" parameterType="java.lang.Long" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_resource a where exists(select 1 from sys_role_res where role_id=#{roleId} and res_id=a.id)
+	</select>
+	
+	<select id="findAllIds" resultType="java.lang.Long">
+		SELECT ID FROM sys_resource
+	</select>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		DELETE FROM sys_resource WHERE
+		ID = #{id} 
+	</delete>
+	
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO sys_resource (
+			name,type,url,parent_id,parent_ids,permission,available
+		) VALUES (
+			#{name},
+			#{type},
+			#{url},
+			#{parentId},
+			#{parentIds},
+			#{permission},
+			#{available}
+			)
+	</insert>
+	
+	<select id="countAll" resultType="java.lang.Long">
+		SELECT count(ID) FROM sys_resource	
+	</select>
+	
+	<select id="findAll" resultMap="rm">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM sys_resource
+	</select>
+	
+	<update id="updateSelective" parameterType="cn.yc.ssh.cq.base.entity.User">
+		UPDATE sys_resource 
+			<set>
+				<if test="name!=null">
+				name = #{name},
+				</if>
+				<if test="type!=null">
+				type = #{type},
+				</if>
+				<if test="url!=null">
+				url = #{url},
+				</if>
+				<if test="parentId!=null">
+				parentId = #{parentId},
+				</if>
+				<if test="parentIds!=null">
+				parentIds = #{parentIds},
+				</if>
+				<if test="permission!=null">
+				permission = #{permission},
+				</if>
+				<if test="available!=null">
+				available = #{available},
+				</if>
+			</set>
+		WHERE 
+			ID = #{id}
+	</update>
+	
+	<update id="update" parameterType="cn.yc.ssh.cq.base.mapper.ResourcesMapper">
+		UPDATE sys_resource SET
+				name = #{name},
+				type = #{type},
+				url = #{url},
+				parentId = #{parentId},
+				parentIds = #{parentIds},
+				permission = #{permission},
+				available = #{available},
+		WHERE 
+			ID = #{id} 
+	</update>
+	
+	<select id="findPageBreakByCondition" resultMap="rm" parameterType="map">
+		SELECT 
+	        <include refid="Base_Column_List" />
+		from sys_resource 
+		<choose>
+			<when test="orderField !=null and orderField !=''">
+				 ORDER BY ${orderField} <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	<select id="findNumberByCondition" resultType="java.lang.Long" parameterType="map">
+		select count(0) as c from sys_resource
+	</select>
+</mapper>
+
