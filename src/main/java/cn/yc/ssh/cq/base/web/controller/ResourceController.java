@@ -2,7 +2,6 @@ package cn.yc.ssh.cq.base.web.controller;
 
 import java.util.List;
 
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,7 +32,6 @@ public class ResourceController extends BaseController {
     }
 
     @RequestMapping(value="")
-    @RequiresPermissions("admin")
     public String list(Model model) {
         model.addAttribute("resourceList", resourceService.findAll());
         return "resource/list";
